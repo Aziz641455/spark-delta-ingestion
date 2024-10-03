@@ -1,0 +1,25 @@
+version: '3'
+services:
+  spark:
+    build: .
+    container_name: spark-job
+    volumes:
+      - ./logs:/opt/spark/logs
+    environment:
+      - SPARK_LOG_DIR=/opt/spark/logs
+    command: >
+      /opt/spark/bin/spark-submit
+      /opt/spark/jobs/spark_job.py
+      /data/input/ /data/output/ false
+
+  spark-history-server:
+    image: gcr.io/spark-operator/spark:v2.4.0
+    container_name: spark-history-server
+    volumes:
+      - ./logs:/opt/spark/logs
+    command: >
+      /sbin/tini -s -- /opt/spark/bin/spark-class
+      org.apache.spark.deploy.history.HistoryServer
+      -Dspark.history.fs.logDirectory=/opt/spark/logs
+    ports:
+      - "18080:18080"
